@@ -1,6 +1,7 @@
 'use client'
 
 import { FormEvent } from 'react';
+import axios from 'axios';
 import './file-upload.css';
 
 export default function FileUpload() {
@@ -9,8 +10,8 @@ export default function FileUpload() {
             <h2>Upload a file</h2>
             
             <form className="upload-form" onSubmit={handleFormSubmit}>
-                <label>uploader name</label>
-                <input id="uploader-name" name="uploader-name" type="text"/>
+                <label>user id</label>
+                <input id="user_id" name="user_id" type="text"/>
                 
                 <label>select file</label>
                 <input id="file" name="file" type="file"/>
@@ -22,16 +23,17 @@ export default function FileUpload() {
 }
 
 
-function handleFormSubmit(event: FormEvent<HTMLFormElement>): void {
+async function handleFormSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     
     const formData = new FormData(event.currentTarget);
-    const name = formData.get('uploader-name') as string | null;
+    console.log(formData);
+    const userId = formData.get('user_id') as string | null;
     const file = formData.get('file') as File | null;
     
     
-    if (!name) {
-        console.error('no name entered');
+    if (!userId) {
+        console.error('no user id entered');
         return;
     }
     if (!file) {
@@ -40,6 +42,17 @@ function handleFormSubmit(event: FormEvent<HTMLFormElement>): void {
     }
     
     const fileContents = getFileContents(file);
+    //ToDo: encrypt fileContents before sending
+    
+    const postForm = new FormData();
+    postForm.append('user_id', userId);
+    postForm.append('file', file);
+    
+    try {
+        await axios.postForm('http://localhost:8080/api/', postForm);
+    } catch {
+        console.error('Failed to send file to backend.');
+    }
 }
 
 
@@ -63,5 +76,6 @@ function getFileContents(file: File) {
         return;
     }
     
+    console.log('file contents:\n' + fileContents);
     return fileContents;
 }
